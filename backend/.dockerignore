@@ -1,0 +1,14 @@
+# Ambiente virtual e cache do Python
+venv/
+__pycache__/
+*.pyc
+
+# Arquivos do Git
+.git
+.gitignore
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Arquivo do Docker do próprio backend
+Dockerfile 

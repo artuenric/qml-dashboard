@@ -1,0 +1,70 @@
+stages:
+  - build
+  - deploy
+
+build-frontend:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - |
+      if [ -z "$SSH_SERVER_IP" ]; then
+        VITE_BUILD_API_URL="http://localhost:8000"
+      else
+        VITE_BUILD_API_URL="http://${SSH_SERVER_IP}:8000"
+      fi
+      echo "Building frontend image with API URL: ${VITE_BUILD_API_URL}"
+      docker build --build-arg VITE_API_URL="${VITE_BUILD_API_URL}" -t "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA" .
+      echo "Pushing frontend image to GitLab Registry..."
+      docker push "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA"
+  only:
+    - develop
+    - master
+
+build-backend:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - echo "Building backend image..."
+    - docker build -f backend/Dockerfile -t "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA" ./backend
+    - echo "Pushing backend image to GitLab Registry..."
+    - docker push "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA"
+  only:
+    - develop
+    - master
+
+deploy_to_vm:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\\n\\tStrictHostKeyChecking no\\n\\n" > ~/.ssh/config'
+  script:
+    - echo "Deploying to production VM..."
+    - export DEPLOY_FILE=docker-compose.prod.yml.temp
+    - cp docker-compose.prod.yml ${DEPLOY_FILE}
+    - sed -i "s|__BACKEND_IMAGE__|$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA|g" ${DEPLOY_FILE}
+    - sed -i "s|__FRONTEND_IMAGE__|$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA|g" ${DEPLOY_FILE}
+    - scp ${DEPLOY_FILE} ${SSH_USER}@${SSH_SERVER_IP}:~/docker-compose.yml
+    - ssh ${SSH_USER}@${SSH_SERVER_IP} "
+        docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} &&
+        docker compose -f ~/docker-compose.yml pull &&
+        docker compose -f ~/docker-compose.yml up -d &&
+        docker image prune -af"
+  environment:
+    name: production
+    url: http://${SSH_SERVER_IP}:5173
+  when: manual
+  only:
+    - master 

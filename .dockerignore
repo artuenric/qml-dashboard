@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+
+# Python
+venv
+backend/venv
+__pycache__
+backend/__pycache__
+*.pyc
+*.pyo
+
+# Docker
+Dockerfile
+backend/Dockerfile
+docker-compose.yml
+
+# Outros
+.DS_Store
+npm-debug.log
+dist
+dist-ssr
+*.local
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw? 

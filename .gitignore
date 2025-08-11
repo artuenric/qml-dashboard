@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Ignorar ambiente virtual Python
+venv/
+backend/venv/
+
+# Ignorar arquivos de dados e modelos
+# *.model (recomendado adicionar no .gitignore futuramente, pois são muito grandes)
+
+# Ignorar arquivos de resultado
+*.txt
+!requirements.txt
+!backend/requirements.txt
+
+# Ignorar checkpoints de notebooks Jupyter
+.ipynb_checkpoints/
+backend/.ipynb_checkpoints/
+
+# Ignorar cache do Python
+__pycache__/
+backend/__pycache__/
+
+# Ignorar notebooks Jupyter (opcional, remova se quiser versionar)
+# *.ipynb

@@ -1,0 +1,21 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Monta o código local no contêiner para desenvolvimento (hot-reload)
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      # Mapeia a porta 80 do Nginx para a porta 5173 no seu computador
+      - "5173:80"
+    depends_on:
+      - backend 

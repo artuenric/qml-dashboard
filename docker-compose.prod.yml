@@ -1,0 +1,15 @@
+services:
+  backend:
+    image: __BACKEND_IMAGE__
+    ports:
+      - "8000:8000"
+    restart: always
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  frontend:
+    image: __FRONTEND_IMAGE__
+    ports:
+      - "5173:80"
+    restart: always
+    depends_on:
+      - backend 
